@@ -10,6 +10,10 @@ PRODUCT_PRODUCT_PROPERTIES += \
 #DPI
 PRODUCT_PROPERTY_OVERRIDES += \
 	ro.sf.lcd_density=440
+	
+# Dex2oat
+PRODUCT_PRODUCT_PROPERTIES += \
+     dalvik.vm.dex2oat64.enabled=true
 
 # Graphics
 PRODUCT_PROPERTY_OVERRIDES += \
