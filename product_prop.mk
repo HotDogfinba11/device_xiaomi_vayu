@@ -31,3 +31,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	persist.dbg.wfc_avail_ovr=1 \
 	persist.vendor.radio.enable_temp_dds=true \
 	persist.vendor.radio.report_codec=1
+
+# Telephony
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.vendor.ims.disableADBLogs=1 \
+    persist.vendor.ims.disableDebugLogs=1 \
+    persist.vendor.ims.disableIMSLogs=1 \
+    persist.vendor.ims.disableQXDMLogs=1
