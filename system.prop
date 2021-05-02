@@ -16,6 +16,31 @@ ro.sf.blurs_are_expensive=1
 PRODUCT_PRODUCT_PROPERTIES +=
 ro.com.google.ime.kb_pad_port_b=1
 
+# Media
+media.settings.xml=/vendor/etc/media_profiles_vendor.xml
+media.stagefright.thumbnail.prefer_hw_codecs=true
+vendor.mm.enable.qcom_parser=131071999
+debug.stagefright.ccodec=1
+ro.media.recorder-max-base-layer-fps=60
+
+# Netmgr
+persist.vendor.data.iwlan.enable=true
+persist.vendor.data.mode=concurrent
+
+# NTP Server backup
+persist.backup.ntpServer="0.pool.ntp.org"
+
+# Netflix custom property
+ro.netflix.bsp_rev=Q855-16947-1
+
+# SSR
+persist.vendor.ssr.restart_level=ALL_ENABLE
+
+# Sensors
+persist.vendor.sensors.enable.mag_filter=true
+
+# Vendor
+ro.vendor.qti.va_aosp.support=1
+
 # Zygote
-PRODUCT_PRODUCT_PROPERTIES +=
 persist.device_config.runtime_native.usap_pool_enabled=true

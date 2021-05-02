@@ -30,16 +30,18 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.config.vc_call_vol_steps=5
 
 # RIL
-PRODUCT_PROPERTY_OVERRIDES += \
-	persist.dbg.volte_avail_ovr=1 \
-	persist.dbg.vt_avail_ovr=1 \
-	persist.dbg.wfc_avail_ovr=1 \
-	persist.vendor.radio.enable_temp_dds=true \
-	persist.vendor.radio.report_codec=1
-
-# Telephony
 PRODUCT_PRODUCT_PROPERTIES += \
+    persist.dbg.volte_avail_ovr=1 \
+    persist.dbg.vt_avail_ovr=1 \
+    persist.dbg.wfc_avail_ovr=1 \
+    persist.radio.NO_STAPA=1 \
+    persist.radio.VT_HYBRID_ENABLE=1 \
     persist.vendor.ims.disableADBLogs=1 \
     persist.vendor.ims.disableDebugLogs=1 \
     persist.vendor.ims.disableIMSLogs=1 \
     persist.vendor.ims.disableQXDMLogs=1
+
+# WFD
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.debug.wfd.enable=1 \
+    persist.sys.wfd.virtual=0
