@@ -5,9 +5,9 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/fluid_vayu.mk
+    $(LOCAL_DIR)/hentai_vayu.mk
 
 COMMON_LUNCH_CHOICES := \
-    fluid_vayu-user \
-    fluid_vayu-userdebug \
-    fluid_vayu-eng
+    hentai_vayu-user \
+    hentai_vayu-userdebug \
+    hentai_vayu-eng
