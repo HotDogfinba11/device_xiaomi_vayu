@@ -25,3 +25,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	persist.dbg.wfc_avail_ovr=1 \
 	persist.vendor.radio.enable_temp_dds=true \
 	persist.vendor.radio.report_codec=1
+	
+# Adb
+ifeq ($(TARGET_BUILD_VARIANT),eng)
+# /vendor/default.prop is force-setting ro.adb.secure=1
+# Get rid of that by overriding it in /product on eng builds
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.secure=0 \
+    ro.adb.secure=0
+endif
