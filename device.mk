@@ -49,13 +49,6 @@ TARGET_SCREEN_WIDTH := 1080
 # Dex
 PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER := everything
 
-# Device-specific settings
-PRODUCT_PACKAGES += \
-    XiaomiParts
-
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/parts/privapp-permissions-parts.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/privapp-permissions-parts.xml
-
 # Device - Libshims camera hack
 PRODUCT_PACKAGES += \
     libmedia_jni_shim
@@ -99,10 +92,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hidl.base@1.0 \
     android.hidl.manager@1.0
-
-# Init scripts
-PRODUCT_PACKAGES += \
-    init.vayu.rc
 
 # Lights
 PRODUCT_PACKAGES += \
