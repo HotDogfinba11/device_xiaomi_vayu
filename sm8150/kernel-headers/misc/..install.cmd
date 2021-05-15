@@ -1,0 +1,1 @@
+cmd_usr/include/misc/.install := /bin/sh scripts/headers_install.sh ./usr/include/misc ./include/uapi/misc akm09970.h cxl.h drv8846.h; /bin/sh scripts/headers_install.sh ./usr/include/misc ./include/generated/uapi/misc ; touch usr/include/misc/.install
