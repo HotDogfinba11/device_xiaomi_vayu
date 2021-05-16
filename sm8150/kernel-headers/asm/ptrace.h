@@ -1,82 +1,97 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-#ifndef _ASM_X86_PTRACE_H
-#define _ASM_X86_PTRACE_H
+/*
+ * Based on arch/arm/include/asm/ptrace.h
+ *
+ * Copyright (C) 1996-2003 Russell King
+ * Copyright (C) 2012 ARM Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#ifndef __ASM_PTRACE_H
+#define __ASM_PTRACE_H
 
-	/* For */
-#include <asm/ptrace-abi.h>
-#include <asm/processor-flags.h>
+#include <linux/types.h>
+
+#include <asm/hwcap.h>
+
+
+/*
+ * PSR bits
+ */
+#define PSR_MODE_EL0t	0x00000000
+#define PSR_MODE_EL1t	0x00000004
+#define PSR_MODE_EL1h	0x00000005
+#define PSR_MODE_EL2t	0x00000008
+#define PSR_MODE_EL2h	0x00000009
+#define PSR_MODE_EL3t	0x0000000c
+#define PSR_MODE_EL3h	0x0000000d
+#define PSR_MODE_MASK	0x0000000f
+
+/* AArch32 CPSR bits */
+#define PSR_MODE32_BIT		0x00000010
+
+/* AArch64 SPSR bits */
+#define PSR_F_BIT	0x00000040
+#define PSR_I_BIT	0x00000080
+#define PSR_A_BIT	0x00000100
+#define PSR_D_BIT	0x00000200
+#define PSR_SSBS_BIT	0x00001000
+#define PSR_PAN_BIT	0x00400000
+#define PSR_UAO_BIT	0x00800000
+#define PSR_Q_BIT	0x08000000
+#define PSR_V_BIT	0x10000000
+#define PSR_C_BIT	0x20000000
+#define PSR_Z_BIT	0x40000000
+#define PSR_N_BIT	0x80000000
+
+/*
+ * Groups of PSR bits
+ */
+#define PSR_f		0xff000000	/* Flags		*/
+#define PSR_s		0x00ff0000	/* Status		*/
+#define PSR_x		0x0000ff00	/* Extension		*/
+#define PSR_c		0x000000ff	/* Control		*/
 
 
 #ifndef __ASSEMBLY__
 
-#ifdef __i386__
-/* this struct defines the way the registers are stored on the
-   stack during a system call. */
-
-
-struct pt_regs {
-	long ebx;
-	long ecx;
-	long edx;
-	long esi;
-	long edi;
-	long ebp;
-	long eax;
-	int  xds;
-	int  xes;
-	int  xfs;
-	int  xgs;
-	long orig_eax;
-	long eip;
-	int  xcs;
-	long eflags;
-	long esp;
-	int  xss;
+/*
+ * User structures for general purpose, floating point and debug registers.
+ */
+struct user_pt_regs {
+	__u64		regs[31];
+	__u64		sp;
+	__u64		pc;
+	__u64		pstate;
 };
 
-
-#else /* __i386__ */
-
-
-struct pt_regs {
-/*
- * C ABI says these regs are callee-preserved. They aren't saved on kernel entry
- * unless syscall needs a complete, fully filled "struct pt_regs".
- */
-	unsigned long r15;
-	unsigned long r14;
-	unsigned long r13;
-	unsigned long r12;
-	unsigned long rbp;
-	unsigned long rbx;
-/* These regs are callee-clobbered. Always saved on kernel entry. */
-	unsigned long r11;
-	unsigned long r10;
-	unsigned long r9;
-	unsigned long r8;
-	unsigned long rax;
-	unsigned long rcx;
-	unsigned long rdx;
-	unsigned long rsi;
-	unsigned long rdi;
-/*
- * On syscall entry, this is syscall#. On CPU exception, this is error code.
- * On hw interrupt, it's IRQ number:
- */
-	unsigned long orig_rax;
-/* Return frame for iretq */
-	unsigned long rip;
-	unsigned long cs;
-	unsigned long eflags;
-	unsigned long rsp;
-	unsigned long ss;
-/* top of stack page */
+struct user_fpsimd_state {
+	__uint128_t	vregs[32];
+	__u32		fpsr;
+	__u32		fpcr;
+	__u32		__reserved[2];
 };
 
-#endif /* !__i386__ */
+struct user_hwdebug_state {
+	__u32		dbg_info;
+	__u32		pad;
+	struct {
+		__u64	addr;
+		__u32	ctrl;
+		__u32	pad;
+	}		dbg_regs[16];
+};
 
+#endif /* __ASSEMBLY__ */
 
-
-#endif /* !__ASSEMBLY__ */
-
-#endif /* _ASM_X86_PTRACE_H */
+#endif /* __ASM_PTRACE_H */

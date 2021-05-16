@@ -1,365 +1,289 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-#ifndef _ASM_X86_KVM_H
-#define _ASM_X86_KVM_H
-
 /*
- * KVM x86 specific structures and definitions
+ * Copyright (C) 2012,2013 - ARM Ltd
+ * Author: Marc Zyngier <marc.zyngier@arm.com>
  *
+ * Derived from arch/arm/include/uapi/asm/kvm.h:
+ * Copyright (C) 2012 - Virtual Open Systems and Columbia University
+ * Author: Christoffer Dall <c.dall@virtualopensystems.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __ARM_KVM_H__
+#define __ARM_KVM_H__
+
+#define KVM_SPSR_EL1	0
+#define KVM_SPSR_SVC	KVM_SPSR_EL1
+#define KVM_SPSR_ABT	1
+#define KVM_SPSR_UND	2
+#define KVM_SPSR_IRQ	3
+#define KVM_SPSR_FIQ	4
+#define KVM_NR_SPSR	5
+
+#ifndef __ASSEMBLY__
+#include <linux/psci.h>
 #include <linux/types.h>
-#include <linux/ioctl.h>
+#include <asm/ptrace.h>
 
-#define KVM_PIO_PAGE_OFFSET 1
-#define KVM_COALESCED_MMIO_PAGE_OFFSET 2
-
-#define DE_VECTOR 0
-#define DB_VECTOR 1
-#define BP_VECTOR 3
-#define OF_VECTOR 4
-#define BR_VECTOR 5
-#define UD_VECTOR 6
-#define NM_VECTOR 7
-#define DF_VECTOR 8
-#define TS_VECTOR 10
-#define NP_VECTOR 11
-#define SS_VECTOR 12
-#define GP_VECTOR 13
-#define PF_VECTOR 14
-#define MF_VECTOR 16
-#define AC_VECTOR 17
-#define MC_VECTOR 18
-#define XM_VECTOR 19
-#define VE_VECTOR 20
-
-/* Select x86 specific features in <linux/kvm.h> */
-#define __KVM_HAVE_PIT
-#define __KVM_HAVE_IOAPIC
-#define __KVM_HAVE_IRQ_LINE
-#define __KVM_HAVE_MSI
-#define __KVM_HAVE_USER_NMI
 #define __KVM_HAVE_GUEST_DEBUG
-#define __KVM_HAVE_MSIX
-#define __KVM_HAVE_MCE
-#define __KVM_HAVE_PIT_STATE2
-#define __KVM_HAVE_XEN_HVM
-#define __KVM_HAVE_VCPU_EVENTS
-#define __KVM_HAVE_DEBUGREGS
-#define __KVM_HAVE_XSAVE
-#define __KVM_HAVE_XCRS
+#define __KVM_HAVE_IRQ_LINE
 #define __KVM_HAVE_READONLY_MEM
 
-/* Architectural interrupt line count. */
-#define KVM_NR_INTERRUPTS 256
+#define KVM_COALESCED_MMIO_PAGE_OFFSET 1
 
-struct kvm_memory_alias {
-	__u32 slot;  /* this has a different namespace than memory slots */
-	__u32 flags;
-	__u64 guest_phys_addr;
-	__u64 memory_size;
-	__u64 target_phys_addr;
-};
+#define KVM_REG_SIZE(id)						\
+	(1U << (((id) & KVM_REG_SIZE_MASK) >> KVM_REG_SIZE_SHIFT))
 
-/* for KVM_GET_IRQCHIP and KVM_SET_IRQCHIP */
-struct kvm_pic_state {
-	__u8 last_irr;	/* edge detection */
-	__u8 irr;		/* interrupt request register */
-	__u8 imr;		/* interrupt mask register */
-	__u8 isr;		/* interrupt service register */
-	__u8 priority_add;	/* highest irq priority */
-	__u8 irq_base;
-	__u8 read_reg_select;
-	__u8 poll;
-	__u8 special_mask;
-	__u8 init_state;
-	__u8 auto_eoi;
-	__u8 rotate_on_auto_eoi;
-	__u8 special_fully_nested_mode;
-	__u8 init4;		/* true if 4 byte init */
-	__u8 elcr;		/* PIIX edge/trigger selection */
-	__u8 elcr_mask;
-};
-
-#define KVM_IOAPIC_NUM_PINS  24
-struct kvm_ioapic_state {
-	__u64 base_address;
-	__u32 ioregsel;
-	__u32 id;
-	__u32 irr;
-	__u32 pad;
-	union {
-		__u64 bits;
-		struct {
-			__u8 vector;
-			__u8 delivery_mode:3;
-			__u8 dest_mode:1;
-			__u8 delivery_status:1;
-			__u8 polarity:1;
-			__u8 remote_irr:1;
-			__u8 trig_mode:1;
-			__u8 mask:1;
-			__u8 reserve:7;
-			__u8 reserved[4];
-			__u8 dest_id;
-		} fields;
-	} redirtbl[KVM_IOAPIC_NUM_PINS];
-};
-
-#define KVM_IRQCHIP_PIC_MASTER   0
-#define KVM_IRQCHIP_PIC_SLAVE    1
-#define KVM_IRQCHIP_IOAPIC       2
-#define KVM_NR_IRQCHIPS          3
-
-#define KVM_RUN_X86_SMM		 (1 << 0)
-
-/* for KVM_GET_REGS and KVM_SET_REGS */
 struct kvm_regs {
-	/* out (KVM_GET_REGS) / in (KVM_SET_REGS) */
-	__u64 rax, rbx, rcx, rdx;
-	__u64 rsi, rdi, rsp, rbp;
-	__u64 r8,  r9,  r10, r11;
-	__u64 r12, r13, r14, r15;
-	__u64 rip, rflags;
+	struct user_pt_regs regs;	/* sp = sp_el0 */
+
+	__u64	sp_el1;
+	__u64	elr_el1;
+
+	__u64	spsr[KVM_NR_SPSR];
+
+	struct user_fpsimd_state fp_regs;
 };
 
-/* for KVM_GET_LAPIC and KVM_SET_LAPIC */
-#define KVM_APIC_REG_SIZE 0x400
-struct kvm_lapic_state {
-	char regs[KVM_APIC_REG_SIZE];
+/*
+ * Supported CPU Targets - Adding a new target type is not recommended,
+ * unless there are some special registers not supported by the
+ * genericv8 syreg table.
+ */
+#define KVM_ARM_TARGET_AEM_V8		0
+#define KVM_ARM_TARGET_FOUNDATION_V8	1
+#define KVM_ARM_TARGET_CORTEX_A57	2
+#define KVM_ARM_TARGET_XGENE_POTENZA	3
+#define KVM_ARM_TARGET_CORTEX_A53	4
+/* Generic ARM v8 target */
+#define KVM_ARM_TARGET_GENERIC_V8	5
+
+#define KVM_ARM_NUM_TARGETS		6
+
+/* KVM_ARM_SET_DEVICE_ADDR ioctl id encoding */
+#define KVM_ARM_DEVICE_TYPE_SHIFT	0
+#define KVM_ARM_DEVICE_TYPE_MASK	(0xffff << KVM_ARM_DEVICE_TYPE_SHIFT)
+#define KVM_ARM_DEVICE_ID_SHIFT		16
+#define KVM_ARM_DEVICE_ID_MASK		(0xffff << KVM_ARM_DEVICE_ID_SHIFT)
+
+/* Supported device IDs */
+#define KVM_ARM_DEVICE_VGIC_V2		0
+
+/* Supported VGIC address types  */
+#define KVM_VGIC_V2_ADDR_TYPE_DIST	0
+#define KVM_VGIC_V2_ADDR_TYPE_CPU	1
+
+#define KVM_VGIC_V2_DIST_SIZE		0x1000
+#define KVM_VGIC_V2_CPU_SIZE		0x2000
+
+/* Supported VGICv3 address types  */
+#define KVM_VGIC_V3_ADDR_TYPE_DIST	2
+#define KVM_VGIC_V3_ADDR_TYPE_REDIST	3
+#define KVM_VGIC_ITS_ADDR_TYPE		4
+
+#define KVM_VGIC_V3_DIST_SIZE		SZ_64K
+#define KVM_VGIC_V3_REDIST_SIZE		(2 * SZ_64K)
+#define KVM_VGIC_V3_ITS_SIZE		(2 * SZ_64K)
+
+#define KVM_ARM_VCPU_POWER_OFF		0 /* CPU is started in OFF state */
+#define KVM_ARM_VCPU_EL1_32BIT		1 /* CPU running a 32bit VM */
+#define KVM_ARM_VCPU_PSCI_0_2		2 /* CPU uses PSCI v0.2 */
+#define KVM_ARM_VCPU_PMU_V3		3 /* Support guest PMUv3 */
+
+struct kvm_vcpu_init {
+	__u32 target;
+	__u32 features[7];
 };
 
-struct kvm_segment {
-	__u64 base;
-	__u32 limit;
-	__u16 selector;
-	__u8  type;
-	__u8  present, dpl, db, s, l, g, avl;
-	__u8  unusable;
-	__u8  padding;
-};
-
-struct kvm_dtable {
-	__u64 base;
-	__u16 limit;
-	__u16 padding[3];
-};
-
-
-/* for KVM_GET_SREGS and KVM_SET_SREGS */
 struct kvm_sregs {
-	/* out (KVM_GET_SREGS) / in (KVM_SET_SREGS) */
-	struct kvm_segment cs, ds, es, fs, gs, ss;
-	struct kvm_segment tr, ldt;
-	struct kvm_dtable gdt, idt;
-	__u64 cr0, cr2, cr3, cr4, cr8;
-	__u64 efer;
-	__u64 apic_base;
-	__u64 interrupt_bitmap[(KVM_NR_INTERRUPTS + 63) / 64];
 };
 
-/* for KVM_GET_FPU and KVM_SET_FPU */
 struct kvm_fpu {
-	__u8  fpr[8][16];
-	__u16 fcw;
-	__u16 fsw;
-	__u8  ftwx;  /* in fxsave format */
-	__u8  pad1;
-	__u16 last_opcode;
-	__u64 last_ip;
-	__u64 last_dp;
-	__u8  xmm[16][16];
-	__u32 mxcsr;
-	__u32 pad2;
 };
 
-struct kvm_msr_entry {
-	__u32 index;
-	__u32 reserved;
-	__u64 data;
-};
-
-/* for KVM_GET_MSRS and KVM_SET_MSRS */
-struct kvm_msrs {
-	__u32 nmsrs; /* number of msrs in entries */
-	__u32 pad;
-
-	struct kvm_msr_entry entries[0];
-};
-
-/* for KVM_GET_MSR_INDEX_LIST */
-struct kvm_msr_list {
-	__u32 nmsrs; /* number of msrs in entries */
-	__u32 indices[0];
-};
-
-
-struct kvm_cpuid_entry {
-	__u32 function;
-	__u32 eax;
-	__u32 ebx;
-	__u32 ecx;
-	__u32 edx;
-	__u32 padding;
-};
-
-/* for KVM_SET_CPUID */
-struct kvm_cpuid {
-	__u32 nent;
-	__u32 padding;
-	struct kvm_cpuid_entry entries[0];
-};
-
-struct kvm_cpuid_entry2 {
-	__u32 function;
-	__u32 index;
-	__u32 flags;
-	__u32 eax;
-	__u32 ebx;
-	__u32 ecx;
-	__u32 edx;
-	__u32 padding[3];
-};
-
-#define KVM_CPUID_FLAG_SIGNIFCANT_INDEX		(1 << 0)
-#define KVM_CPUID_FLAG_STATEFUL_FUNC		(1 << 1)
-#define KVM_CPUID_FLAG_STATE_READ_NEXT		(1 << 2)
-
-/* for KVM_SET_CPUID2 */
-struct kvm_cpuid2 {
-	__u32 nent;
-	__u32 padding;
-	struct kvm_cpuid_entry2 entries[0];
-};
-
-/* for KVM_GET_PIT and KVM_SET_PIT */
-struct kvm_pit_channel_state {
-	__u32 count; /* can be 65536 */
-	__u16 latched_count;
-	__u8 count_latched;
-	__u8 status_latched;
-	__u8 status;
-	__u8 read_state;
-	__u8 write_state;
-	__u8 write_latch;
-	__u8 rw_mode;
-	__u8 mode;
-	__u8 bcd;
-	__u8 gate;
-	__s64 count_load_time;
+/*
+ * See v8 ARM ARM D7.3: Debug Registers
+ *
+ * The architectural limit is 16 debug registers of each type although
+ * in practice there are usually less (see ID_AA64DFR0_EL1).
+ *
+ * Although the control registers are architecturally defined as 32
+ * bits wide we use a 64 bit structure here to keep parity with
+ * KVM_GET/SET_ONE_REG behaviour which treats all system registers as
+ * 64 bit values. It also allows for the possibility of the
+ * architecture expanding the control registers without having to
+ * change the userspace ABI.
+ */
+#define KVM_ARM_MAX_DBG_REGS 16
+struct kvm_guest_debug_arch {
+	__u64 dbg_bcr[KVM_ARM_MAX_DBG_REGS];
+	__u64 dbg_bvr[KVM_ARM_MAX_DBG_REGS];
+	__u64 dbg_wcr[KVM_ARM_MAX_DBG_REGS];
+	__u64 dbg_wvr[KVM_ARM_MAX_DBG_REGS];
 };
 
 struct kvm_debug_exit_arch {
-	__u32 exception;
-	__u32 pad;
-	__u64 pc;
-	__u64 dr6;
-	__u64 dr7;
+	__u32 hsr;
+	__u64 far;	/* used for watchpoints */
 };
 
-#define KVM_GUESTDBG_USE_SW_BP		0x00010000
-#define KVM_GUESTDBG_USE_HW_BP		0x00020000
-#define KVM_GUESTDBG_INJECT_DB		0x00040000
-#define KVM_GUESTDBG_INJECT_BP		0x00080000
+/*
+ * Architecture specific defines for kvm_guest_debug->control
+ */
 
-/* for KVM_SET_GUEST_DEBUG */
-struct kvm_guest_debug_arch {
-	__u64 debugreg[8];
-};
+#define KVM_GUESTDBG_USE_SW_BP		(1 << 16)
+#define KVM_GUESTDBG_USE_HW		(1 << 17)
 
-struct kvm_pit_state {
-	struct kvm_pit_channel_state channels[3];
-};
-
-#define KVM_PIT_FLAGS_HPET_LEGACY  0x00000001
-
-struct kvm_pit_state2 {
-	struct kvm_pit_channel_state channels[3];
-	__u32 flags;
-	__u32 reserved[9];
-};
-
-struct kvm_reinject_control {
-	__u8 pit_reinject;
-	__u8 reserved[31];
-};
-
-/* When set in flags, include corresponding fields on KVM_SET_VCPU_EVENTS */
-#define KVM_VCPUEVENT_VALID_NMI_PENDING	0x00000001
-#define KVM_VCPUEVENT_VALID_SIPI_VECTOR	0x00000002
-#define KVM_VCPUEVENT_VALID_SHADOW	0x00000004
-#define KVM_VCPUEVENT_VALID_SMM		0x00000008
-
-/* Interrupt shadow states */
-#define KVM_X86_SHADOW_INT_MOV_SS	0x01
-#define KVM_X86_SHADOW_INT_STI		0x02
-
-/* for KVM_GET/SET_VCPU_EVENTS */
-struct kvm_vcpu_events {
-	struct {
-		__u8 injected;
-		__u8 nr;
-		__u8 has_error_code;
-		__u8 pad;
-		__u32 error_code;
-	} exception;
-	struct {
-		__u8 injected;
-		__u8 nr;
-		__u8 soft;
-		__u8 shadow;
-	} interrupt;
-	struct {
-		__u8 injected;
-		__u8 pending;
-		__u8 masked;
-		__u8 pad;
-	} nmi;
-	__u32 sipi_vector;
-	__u32 flags;
-	struct {
-		__u8 smm;
-		__u8 pending;
-		__u8 smm_inside_nmi;
-		__u8 latched_init;
-	} smi;
-	__u32 reserved[9];
-};
-
-/* for KVM_GET/SET_DEBUGREGS */
-struct kvm_debugregs {
-	__u64 db[4];
-	__u64 dr6;
-	__u64 dr7;
-	__u64 flags;
-	__u64 reserved[9];
-};
-
-/* for KVM_CAP_XSAVE */
-struct kvm_xsave {
-	__u32 region[1024];
-};
-
-#define KVM_MAX_XCRS	16
-
-struct kvm_xcr {
-	__u32 xcr;
-	__u32 reserved;
-	__u64 value;
-};
-
-struct kvm_xcrs {
-	__u32 nr_xcrs;
-	__u32 flags;
-	struct kvm_xcr xcrs[KVM_MAX_XCRS];
-	__u64 padding[16];
-};
-
-/* definition of registers in kvm_run */
 struct kvm_sync_regs {
+	/* Used with KVM_CAP_ARM_USER_IRQ */
+	__u64 device_irq_level;
 };
 
-#define KVM_X86_QUIRK_LINT0_REENABLED	(1 << 0)
-#define KVM_X86_QUIRK_CD_NW_CLEARED	(1 << 1)
-#define KVM_X86_QUIRK_LAPIC_MMIO_HOLE	(1 << 2)
+struct kvm_arch_memory_slot {
+};
 
-#endif /* _ASM_X86_KVM_H */
+/* If you need to interpret the index values, here is the key: */
+#define KVM_REG_ARM_COPROC_MASK		0x000000000FFF0000
+#define KVM_REG_ARM_COPROC_SHIFT	16
+
+/* Normal registers are mapped as coprocessor 16. */
+#define KVM_REG_ARM_CORE		(0x0010 << KVM_REG_ARM_COPROC_SHIFT)
+#define KVM_REG_ARM_CORE_REG(name)	(offsetof(struct kvm_regs, name) / sizeof(__u32))
+
+/* Some registers need more space to represent values. */
+#define KVM_REG_ARM_DEMUX		(0x0011 << KVM_REG_ARM_COPROC_SHIFT)
+#define KVM_REG_ARM_DEMUX_ID_MASK	0x000000000000FF00
+#define KVM_REG_ARM_DEMUX_ID_SHIFT	8
+#define KVM_REG_ARM_DEMUX_ID_CCSIDR	(0x00 << KVM_REG_ARM_DEMUX_ID_SHIFT)
+#define KVM_REG_ARM_DEMUX_VAL_MASK	0x00000000000000FF
+#define KVM_REG_ARM_DEMUX_VAL_SHIFT	0
+
+/* AArch64 system registers */
+#define KVM_REG_ARM64_SYSREG		(0x0013 << KVM_REG_ARM_COPROC_SHIFT)
+#define KVM_REG_ARM64_SYSREG_OP0_MASK	0x000000000000c000
+#define KVM_REG_ARM64_SYSREG_OP0_SHIFT	14
+#define KVM_REG_ARM64_SYSREG_OP1_MASK	0x0000000000003800
+#define KVM_REG_ARM64_SYSREG_OP1_SHIFT	11
+#define KVM_REG_ARM64_SYSREG_CRN_MASK	0x0000000000000780
+#define KVM_REG_ARM64_SYSREG_CRN_SHIFT	7
+#define KVM_REG_ARM64_SYSREG_CRM_MASK	0x0000000000000078
+#define KVM_REG_ARM64_SYSREG_CRM_SHIFT	3
+#define KVM_REG_ARM64_SYSREG_OP2_MASK	0x0000000000000007
+#define KVM_REG_ARM64_SYSREG_OP2_SHIFT	0
+
+#define ARM64_SYS_REG_SHIFT_MASK(x,n) \
+	(((x) << KVM_REG_ARM64_SYSREG_ ## n ## _SHIFT) & \
+	KVM_REG_ARM64_SYSREG_ ## n ## _MASK)
+
+#define __ARM64_SYS_REG(op0,op1,crn,crm,op2) \
+	(KVM_REG_ARM64 | KVM_REG_ARM64_SYSREG | \
+	ARM64_SYS_REG_SHIFT_MASK(op0, OP0) | \
+	ARM64_SYS_REG_SHIFT_MASK(op1, OP1) | \
+	ARM64_SYS_REG_SHIFT_MASK(crn, CRN) | \
+	ARM64_SYS_REG_SHIFT_MASK(crm, CRM) | \
+	ARM64_SYS_REG_SHIFT_MASK(op2, OP2))
+
+#define ARM64_SYS_REG(...) (__ARM64_SYS_REG(__VA_ARGS__) | KVM_REG_SIZE_U64)
+
+#define KVM_REG_ARM_TIMER_CTL		ARM64_SYS_REG(3, 3, 14, 3, 1)
+#define KVM_REG_ARM_TIMER_CNT		ARM64_SYS_REG(3, 3, 14, 3, 2)
+#define KVM_REG_ARM_TIMER_CVAL		ARM64_SYS_REG(3, 3, 14, 0, 2)
+
+/* KVM-as-firmware specific pseudo-registers */
+#define KVM_REG_ARM_FW			(0x0014 << KVM_REG_ARM_COPROC_SHIFT)
+#define KVM_REG_ARM_FW_REG(r)		(KVM_REG_ARM64 | KVM_REG_SIZE_U64 | \
+					 KVM_REG_ARM_FW | ((r) & 0xffff))
+#define KVM_REG_ARM_PSCI_VERSION	KVM_REG_ARM_FW_REG(0)
+
+/* Device Control API: ARM VGIC */
+#define KVM_DEV_ARM_VGIC_GRP_ADDR	0
+#define KVM_DEV_ARM_VGIC_GRP_DIST_REGS	1
+#define KVM_DEV_ARM_VGIC_GRP_CPU_REGS	2
+#define   KVM_DEV_ARM_VGIC_CPUID_SHIFT	32
+#define   KVM_DEV_ARM_VGIC_CPUID_MASK	(0xffULL << KVM_DEV_ARM_VGIC_CPUID_SHIFT)
+#define   KVM_DEV_ARM_VGIC_V3_MPIDR_SHIFT 32
+#define   KVM_DEV_ARM_VGIC_V3_MPIDR_MASK \
+			(0xffffffffULL << KVM_DEV_ARM_VGIC_V3_MPIDR_SHIFT)
+#define   KVM_DEV_ARM_VGIC_OFFSET_SHIFT	0
+#define   KVM_DEV_ARM_VGIC_OFFSET_MASK	(0xffffffffULL << KVM_DEV_ARM_VGIC_OFFSET_SHIFT)
+#define   KVM_DEV_ARM_VGIC_SYSREG_INSTR_MASK (0xffff)
+#define KVM_DEV_ARM_VGIC_GRP_NR_IRQS	3
+#define KVM_DEV_ARM_VGIC_GRP_CTRL	4
+#define KVM_DEV_ARM_VGIC_GRP_REDIST_REGS 5
+#define KVM_DEV_ARM_VGIC_GRP_CPU_SYSREGS 6
+#define KVM_DEV_ARM_VGIC_GRP_LEVEL_INFO  7
+#define KVM_DEV_ARM_VGIC_GRP_ITS_REGS 8
+#define KVM_DEV_ARM_VGIC_LINE_LEVEL_INFO_SHIFT	10
+#define KVM_DEV_ARM_VGIC_LINE_LEVEL_INFO_MASK \
+			(0x3fffffULL << KVM_DEV_ARM_VGIC_LINE_LEVEL_INFO_SHIFT)
+#define KVM_DEV_ARM_VGIC_LINE_LEVEL_INTID_MASK	0x3ff
+#define VGIC_LEVEL_INFO_LINE_LEVEL	0
+
+#define   KVM_DEV_ARM_VGIC_CTRL_INIT		0
+#define   KVM_DEV_ARM_ITS_SAVE_TABLES           1
+#define   KVM_DEV_ARM_ITS_RESTORE_TABLES        2
+#define   KVM_DEV_ARM_VGIC_SAVE_PENDING_TABLES	3
+
+/* Device Control API on vcpu fd */
+#define KVM_ARM_VCPU_PMU_V3_CTRL	0
+#define   KVM_ARM_VCPU_PMU_V3_IRQ	0
+#define   KVM_ARM_VCPU_PMU_V3_INIT	1
+#define KVM_ARM_VCPU_TIMER_CTRL		1
+#define   KVM_ARM_VCPU_TIMER_IRQ_VTIMER		0
+#define   KVM_ARM_VCPU_TIMER_IRQ_PTIMER		1
+
+/* KVM_IRQ_LINE irq field index values */
+#define KVM_ARM_IRQ_TYPE_SHIFT		24
+#define KVM_ARM_IRQ_TYPE_MASK		0xff
+#define KVM_ARM_IRQ_VCPU_SHIFT		16
+#define KVM_ARM_IRQ_VCPU_MASK		0xff
+#define KVM_ARM_IRQ_NUM_SHIFT		0
+#define KVM_ARM_IRQ_NUM_MASK		0xffff
+
+/* irq_type field */
+#define KVM_ARM_IRQ_TYPE_CPU		0
+#define KVM_ARM_IRQ_TYPE_SPI		1
+#define KVM_ARM_IRQ_TYPE_PPI		2
+
+/* out-of-kernel GIC cpu interrupt injection irq_number field */
+#define KVM_ARM_IRQ_CPU_IRQ		0
+#define KVM_ARM_IRQ_CPU_FIQ		1
+
+/*
+ * This used to hold the highest supported SPI, but it is now obsolete
+ * and only here to provide source code level compatibility with older
+ * userland. The highest SPI number can be set via KVM_DEV_ARM_VGIC_GRP_NR_IRQS.
+ */
+#define KVM_ARM_IRQ_GIC_MAX		127
+
+/* One single KVM irqchip, ie. the VGIC */
+#define KVM_NR_IRQCHIPS          1
+
+/* PSCI interface */
+#define KVM_PSCI_FN_BASE		0x95c1ba5e
+#define KVM_PSCI_FN(n)			(KVM_PSCI_FN_BASE + (n))
+
+#define KVM_PSCI_FN_CPU_SUSPEND		KVM_PSCI_FN(0)
+#define KVM_PSCI_FN_CPU_OFF		KVM_PSCI_FN(1)
+#define KVM_PSCI_FN_CPU_ON		KVM_PSCI_FN(2)
+#define KVM_PSCI_FN_MIGRATE		KVM_PSCI_FN(3)
+
+#define KVM_PSCI_RET_SUCCESS		PSCI_RET_SUCCESS
+#define KVM_PSCI_RET_NI			PSCI_RET_NOT_SUPPORTED
+#define KVM_PSCI_RET_INVAL		PSCI_RET_INVALID_PARAMS
+#define KVM_PSCI_RET_DENIED		PSCI_RET_DENIED
+
+#endif
+
+#endif /* __ARM_KVM_H__ */

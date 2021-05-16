@@ -1,17 +1,24 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-#ifndef _ASM_X86_SIGINFO_H
-#define _ASM_X86_SIGINFO_H
+/*
+ * Copyright (C) 2012 ARM Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#ifndef __ASM_SIGINFO_H
+#define __ASM_SIGINFO_H
 
-#ifdef __x86_64__
-# ifdef __ILP32__ /* x32 */
-typedef long long __kernel_si_clock_t __attribute__((aligned(4)));
-#  define __ARCH_SI_CLOCK_T		__kernel_si_clock_t
-#  define __ARCH_SI_ATTRIBUTES		__attribute__((aligned(8)))
-# else /* x86-64 */
-#  define __ARCH_SI_PREAMBLE_SIZE	(4 * sizeof(int))
-# endif
-#endif
+#define __ARCH_SI_PREAMBLE_SIZE	(4 * sizeof(int))
 
 #include <asm-generic/siginfo.h>
 
-#endif /* _ASM_X86_SIGINFO_H */
+#endif
